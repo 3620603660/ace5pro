@@ -16,6 +16,8 @@ on:
         required: true
         default: "propeller_profile"
 
+
+
 jobs:
   generate_profile:
     runs-on: ubuntu-latest
@@ -25,51 +27,55 @@ jobs:
 
       - name: Setup LLVM and Clang (Requires LLVM 19+)
         run: |
-          # 实际环境中，您可能需要添加 PPA 或从源代码构建来获取 LLVM 19+。
-          # 这里仅作示例，假设系统已提供或您有其他方式安装。
+          # 更新 apt 缓存并安装 clang-19 和 lld-19
           sudo apt-get update
           sudo apt-get install -y clang-19 lld-19
+          # 将 LLVM 19 的 bin 目录添加到 PATH，并设置 CC/CXX 环境变量
           echo "PATH=/usr/lib/llvm-19/bin:$PATH" >> $GITHUB_ENV
           echo "CC=clang-19" >> $GITHUB_ENV
           echo "CXX=clang++-19" >> $GITHUB_ENV
 
-      - name: Install Protobuf dependencies
+      - name: Install Build Dependencies (Protobuf, libelf) # 新增步骤，安装 autofdo 所需的依赖
         run: |
           sudo apt-get update
           sudo apt-get install -y libprotobuf-dev protobuf-compiler libelf-dev
 
       - name: Install AutoFDO tools (create_llvm_prof)
         run: |
-          # 克隆 AutoFDO 仓库
+          # 克隆 AutoFDO 官方仓库
           git clone https://github.com/google/autofdo.git autofdo_custom
           cd autofdo_custom
-          # 初始化并更新 Git 子模块，这将拉取所需的 LLVM 源代码
+          # 初始化并更新 Git 子模块，确保 LLVM 源代码正确拉取
           git submodule update --init --recursive
           
           mkdir build && cd build
-          # 添加 -DCMAKE_BUILD_TYPE=Release
-          cmake .. -DCMAKE_BUILD_TYPE=Release 
+          # 使用 Release 构建类型配置 CMake
+          cmake .. -DCMAKE_BUILD_TYPE=Release
           make -j$(nproc)
-          # 正确地将构建目录添加到 PATH 环境变量
-          echo "PATH=$GITHUB_WORKSPACE/autofdo_custom/build:$PATH" >> $GITHUB_ENV # <-- 修正后的行
-
+          # 将构建目录添加到 PATH 环境变量，以便后续步骤可以找到 create_llvm_prof
+          echo "PATH=$GITHUB_WORKSPACE/autofdo_custom/build:$PATH" >> $GITHUB_ENV
 
       - name: Prepare vmlinux and perf.data
         run: |
-          # 如果您的 vmlinux 和 perf.data 是通过 actions/upload-artifact 上传的，
-          # 您需要在这里使用 actions/download-artifact 来下载它们。
-          # 例如：
-          # - name: Download vmlinux artifact
-          #   uses: actions/download-artifact@v3
-          #   with:
-          #     name: vmlinux-artifact
-          #     path: .
-          # - name: Download perf.data artifact
-          #   uses: actions/download-artifact@v3
-          #   with:
-          #     name: perf-data-artifact
-          #     path: .
+          # 检查 vmlinux 和 perf.data 文件是否存在于指定路径
+          # 注意：如果这些文件是通过 artifact 上传的，您需要在前面添加 actions/download-artifact 步骤
           
+          # 示例：如果您的 vmlinux 和 perf.data 是通过 actions/upload-artifact 上传的，
+          # 您需要在这里使用 actions/download-artifact 来下载它们。
+          # 假设它们被下载到当前工作目录（即 .）
+          
+          # - name: Download vmlinux artifact # 如果需要下载，请取消注释
+          #   uses: actions/download-artifact@v4
+          #   with:
+          #     name: vmlinux-artifact # 替换为实际的 artifact 名称
+          #     path: . # 下载到当前目录，这样 ${{ github.event.inputs.VMLINUX_PATH }} 就可以是 ./vmlinux
+
+          # - name: Download perf.data artifact # 如果需要下载，请取消注释
+          #   uses: actions/download-artifact@v4
+          #   with:
+          #     name: perf-data-artifact # 替换为实际的 artifact 名称
+          #     path: . # 下载到当前目录，这样 ${{ github.event.inputs.PERF_DATA_PATH }} 就可以是 ./perf.data
+
           # 确保 vmlinux 和 perf.data 文件存在于指定路径
           if [ ! -f "${{ github.event.inputs.VMLINUX_PATH }}" ]; then
             echo "Error: vmlinux file not found at ${{ github.event.inputs.VMLINUX_PATH }}"
@@ -83,6 +89,7 @@ jobs:
 
       - name: Generate Propeller Profiles
         run: |
+          # 确保 create_llvm_prof 在 PATH 中可用
           # 确保 vmlinux 文件是完整的，并且 perf.data 包含有效的性能数据。
           # create_llvm_prof 的具体参数可能需要根据您的 perf 数据和内核版本进行调整。
           create_llvm_prof \
@@ -101,5 +108,3 @@ jobs:
           path: |
             ${{ github.event.inputs.PROPELLER_PROFILE_PREFIX }}_cc_profile.txt
             ${{ github.event.inputs.PROPELLER_PROFILE_PREFIX }}_ld_profile.txt
-
-
