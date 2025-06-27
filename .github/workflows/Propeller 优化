@@ -1,5 +1,4 @@
-name: Generate Propeller Profile from Existing Data
-
+name: Generate Propeller Profile
 on:
   workflow_dispatch:
     inputs:
