@@ -6,11 +6,11 @@ on:
       VMLINUX_PATH:
         description: "vmlinux 文件路径（对应于您的 kernel.afdo）"
         required: true
-        default: "./vmlinux"
+        default: "https://github.com/3620603660/afdo.git"
       PERF_DATA_PATH:
         description: "perf.data 文件路径"
         required: true
-        default: "./perf.data"
+        default: "https://github.com/3620603660/perf.git"
       PROPELLER_PROFILE_PREFIX:
         description: "Propeller 配置文件前缀"
         required: true
