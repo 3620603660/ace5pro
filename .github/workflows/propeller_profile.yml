@@ -33,14 +33,16 @@ jobs:
           echo "CC=clang-19" >> $GITHUB_ENV
           echo "CXX=clang++-19" >> $GITHUB_ENV
 
+      - name: Install Protobuf dependencies # 新增步骤
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libprotobuf-dev protobuf-compiler
+
       - name: Install AutoFDO tools (create_llvm_prof)
         run: |
           # 克隆 AutoFDO 仓库并构建 create_llvm_prof
-          # 使用官方的 google/autofdo 仓库链接
-          git clone https://github.com/google/autofdo.git autofdo_custom
+          git clone https://github.com/google/autofdo.git autofdo_custom # 确保这里是官方仓库
           cd autofdo_custom
-          # 如果需要特定版本，请取消注释并指定
-          # git checkout v0.30.1 
           mkdir build && cd build
           cmake ..
           make -j$(nproc)
