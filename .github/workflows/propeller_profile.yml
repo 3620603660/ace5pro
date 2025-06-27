@@ -36,8 +36,8 @@ jobs:
       - name: Install AutoFDO tools (create_llvm_prof)
         run: |
           # 克隆 AutoFDO 仓库并构建 create_llvm_prof
-          # 使用您提供的 afdo 仓库链接
-          git clone https://github.com/3620603660/afdo.git autofdo_custom
+          # 使用官方的 google/autofdo 仓库链接
+          git clone https://github.com/google/autofdo.git autofdo_custom
           cd autofdo_custom
           # 如果需要特定版本，请取消注释并指定
           # git checkout v0.30.1 
