@@ -33,10 +33,10 @@ jobs:
           echo "CC=clang-19" >> $GITHUB_ENV
           echo "CXX=clang++-19" >> $GITHUB_ENV
 
-      - name: Install Protobuf dependencies # 新增步骤
+      - name: Install Protobuf dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libprotobuf-dev protobuf-compiler
+          sudo apt-get install -y libprotobuf-dev protobuf-compiler libelf-dev
 
       - name: Install AutoFDO tools (create_llvm_prof)
         run: |
