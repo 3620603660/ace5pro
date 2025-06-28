@@ -57,26 +57,29 @@ jobs:
 
       - name: Prepare vmlinux and perf.data
         run: |
-          # 检查 vmlinux 和 perf.data 文件是否存在于指定路径
-          # 注意：如果这些文件是通过 artifact 上传的，您需要在前面添加 actions/download-artifact 步骤
-          
-          # 示例：如果您的 vmlinux 和 perf.data 是通过 actions/upload-artifact 上传的，
+          # 确保 vmlinux 和 perf.data 文件存在于指定路径
+          # 如果您的 vmlinux 和 perf.data 是通过 actions/upload-artifact 上传的，
           # 您需要在这里使用 actions/download-artifact 来下载它们。
           # 假设它们被下载到当前工作目录（即 .）
-          
-          # - name: Download vmlinux artifact # 如果需要下载，请取消注释
+
+          # ！！！请根据您实际上传 artifact 的名称来修改 'name' 字段！！！
+          # ！！！如果这些文件不是通过 artifact 上传的，请删除或注释掉下面的 download-artifact 步骤！！！
+
+          # - name: Download vmlinux artifact # <-- 如果您通过 artifact 上传了 vmlinux，请取消注释此行及以下
           #   uses: actions/download-artifact@v4
           #   with:
-          #     name: vmlinux-artifact # 替换为实际的 artifact 名称
+          #     name: vmlinux-artifact # 替换为实际的 vmlinux artifact 名称
           #     path: . # 下载到当前目录，这样 ${{ github.event.inputs.VMLINUX_PATH }} 就可以是 ./vmlinux
 
-          # - name: Download perf.data artifact # 如果需要下载，请取消注释
+          # - name: Download perf.data artifact # <-- 如果您通过 artifact 上传了 perf.data，请取消注释此行及以下
           #   uses: actions/download-artifact@v4
           #   with:
-          #     name: perf-data-artifact # 替换为实际的 artifact 名称
+          #     name: perf-data-artifact # 替换为实际的 perf.data artifact 名称
           #     path: . # 下载到当前目录，这样 ${{ github.event.inputs.PERF_DATA_PATH }} 就可以是 ./perf.data
 
           # 确保 vmlinux 和 perf.data 文件存在于指定路径
+          # 这里的检查是针对 ${{ github.event.inputs.VMLINUX_PATH }} 和 ${{ github.event.inputs.PERF_DATA_PATH }} 的值
+          # 如果您使用 download-artifact 下载到当前目录，那么默认的 './vmlinux' 和 './perf.data' 就会是正确的路径
           if [ ! -f "${{ github.event.inputs.VMLINUX_PATH }}" ]; then
             echo "Error: vmlinux file not found at ${{ github.event.inputs.VMLINUX_PATH }}"
             exit 1
@@ -86,6 +89,7 @@ jobs:
             exit 1
           fi
           echo "vmlinux and perf.data are ready."
+
 
       - name: Generate Propeller Profiles
         run: |
